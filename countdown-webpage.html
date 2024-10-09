@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>80-Year Countdown Timer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+        }
+        #countdown {
+            font-size: 48px;
+            font-weight: bold;
+            color: #333;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        #futureDate {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 10px;
+        }
+        #hiddenDate {
+            margin-bottom: 10px;
+        }
+        #toggleButton {
+            padding: 5px 10px;
+            background-color: #f0f0f0;
+            color: #f0f0f0;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #toggleButton:hover {
+            background-color: #f0f0f0;
+        }
+    </style>
+</head>
+<body>
+    <div id="countdown"></div>
+    <div id="futureDate"></div>
+    <input type="date" id="hiddenDate" style="display: none;">
+    <button id="toggleButton">Show/Hide Date Input</button>
+
+    <script>
+        const SECONDS_IN_80_YEARS = 80 * 365.25 * 24 * 60 * 60;
+        const countdownElement = document.getElementById('countdown');
+        const futureDateElement = document.getElementById('futureDate');
+        const hiddenDateInput = document.getElementById('hiddenDate');
+        const toggleButton = document.getElementById('toggleButton');
+        let countdownInterval;
+
+        function formatNumber(num) {
+            return num.toLocaleString('en-US');
+        }
+
+        function formatDate(date) {
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        function saveDate(date) {
+            localStorage.setItem('hiddenDate', date);
+        }
+
+        function getStoredDate() {
+            return localStorage.getItem('hiddenDate') || new Date().toISOString().split('T')[0];
+        }
+
+        function calculateCountdown() {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+
+            const hiddenDate = new Date(hiddenDateInput.value);
+            const now = new Date();
+            const futureDate = new Date(hiddenDate.getFullYear() + 80, hiddenDate.getMonth(), hiddenDate.getDate());
+
+            const secondsSinceHiddenDate = Math.floor((now - hiddenDate) / 1000);
+            let countdown = Math.max(0, SECONDS_IN_80_YEARS - secondsSinceHiddenDate);
+
+            futureDateElement.textContent = `${formatDate(futureDate)}`;
+
+            function updateCountdown() {
+                countdownElement.textContent = formatNumber(countdown);
+                if (countdown > 0) {
+                    countdown--;
+                } else {
+                    clearInterval(countdownInterval);
+                }
+            }
+
+            updateCountdown();
+            countdownInterval = setInterval(updateCountdown, 1000);
+        }
+
+        // Toggle visibility of the date input
+        toggleButton.addEventListener('click', function() {
+            if (hiddenDateInput.style.display === 'none') {
+                hiddenDateInput.style.display = 'block';
+            } else {
+                hiddenDateInput.style.display = 'none';
+            }
+        });
+
+        // Set stored date or default to today and trigger calculation
+        hiddenDateInput.value = getStoredDate();
+        calculateCountdown();
+
+        // Allow updating the hidden date and save the new date
+        hiddenDateInput.addEventListener('change', function() {
+            saveDate(this.value);
+            calculateCountdown();
+        });
+    </script>
+</body>
+</html>
